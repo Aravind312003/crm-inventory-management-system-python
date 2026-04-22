@@ -1,0 +1,5 @@
+{
+  "name": "CRM & Inventory Management System",
+  "description": "A full-stack CRM and Inventory Management System with Suppliers, Products, Stock, and Customer tracking. Features automated serial numbers, stock reduction, and real-time calculations.",
+  "requestFramePermissions": []
+}

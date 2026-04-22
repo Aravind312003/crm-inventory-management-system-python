@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+supabase
+python-jose[cryptography]
+bcrypt
+python-multipart
+python-dotenv
+gunicorn
