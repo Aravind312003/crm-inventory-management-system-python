@@ -215,6 +215,4 @@ async def not_found_exception_handler(request: Request, exc: HTTPException):
 if os.path.exists(dist_path):
     app.mount("/", StaticFiles(directory=dist_path, html=True), name="static")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=3000)
+
