@@ -7,7 +7,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from backend.database import get_supabase
-from auth import (
+from backend.auth import (
     verify_password,
     get_password_hash,
     create_access_token,
