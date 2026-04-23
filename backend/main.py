@@ -13,7 +13,7 @@ from backend.auth import (
     create_access_token,
     get_current_user
 )
-from services.inventory_service import InventoryService
+from backend.services.inventory_service import InventoryService
 
 app = FastAPI(title="Inventory Management API")
 
