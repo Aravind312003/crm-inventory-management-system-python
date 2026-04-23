@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from typing import List, Optional
 from datetime import datetime
 
-from database import get_supabase
+from backend.database import get_supabase
 from auth import (
     verify_password,
     get_password_hash,
