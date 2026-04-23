@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-axios.defaults.baseURL ="http://localhost:3000/";
+axios.defaults.baseURL ="https://crm-inventory-management-system-python.onrender.com/";
 
 interface User {
   id: number;
