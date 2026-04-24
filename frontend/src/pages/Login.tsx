@@ -5,7 +5,13 @@ import { useAuth } from '../context/AuthContext.tsx';
 import { Box } from 'lucide-react';
 import { motion } from 'motion/react';
 
-const API_URL = "https://crm-inventory-management-system-python.onrender.com";
+// ✅ Create dedicated axios instance (prevents wrong URL issues)
+const API = axios.create({
+  baseURL: "https://crm-inventory-management-system-python.onrender.com",
+  headers: {
+    "Content-Type": "application/json"
+  }
+});
 
 export default function Login() {
   const [identifier, setIdentifier] = useState('');
@@ -24,26 +30,16 @@ export default function Login() {
     console.log("🚀 LOGIN CLICKED");
 
     try {
-      const res = await axios.post(`${API_URL}/api/auth/login`, {
+      // ✅ ALWAYS hits Render backend
+      const res = await API.post('/api/auth/login', {
         identifier,
         password
-      }, {
-        headers: {
-          "Content-Type": "application/json"
-        }
       });
 
-      console.log("✅ FULL RESPONSE:", res);
-      console.log("✅ DATA:", res.data);
+      console.log("✅ RESPONSE DATA:", res.data);
 
-      // 🚨 IMPORTANT CHECK
-      if (!res.data) {
-        throw new Error("No response data from server");
-      }
-
-      if (!res.data.token) {
-        console.warn("⚠️ Token missing:", res.data);
-        throw new Error(res.data.message || "Invalid login response");
+      if (!res.data || !res.data.token) {
+        throw new Error("Invalid login response");
       }
 
       // ✅ Save auth
@@ -57,15 +53,14 @@ export default function Login() {
     } catch (err: any) {
       console.error("❌ LOGIN ERROR:", err);
 
-      // 🔥 Handle HTML response case (your earlier issue)
       if (err.response && typeof err.response.data === "string") {
-        setError("Server returned invalid response (HTML instead of JSON)");
+        setError("Server returned HTML instead of JSON (wrong endpoint)");
       } else {
         setError(
           err.response?.data?.detail ||
           err.response?.data?.message ||
           err.message ||
-          "Login failed. Please check your connection."
+          "Login failed"
         );
       }
     } finally {
