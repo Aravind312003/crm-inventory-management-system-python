@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard.tsx';
 import Suppliers from './pages/Suppliers.tsx';
 import Products from './pages/Products.tsx';
 import Stock from './pages/Stock.tsx';
-import Sales from './apages/Sales.tsx';
+import Sales from './pages/Sales.tsx';
 import CustomerList from './pages/CustomerList.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
