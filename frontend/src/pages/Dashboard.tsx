@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Users, Package, BarChart3, IndianRupee, ArrowUpRight, ArrowDownRight, Clock, ShoppingCart, Box } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Users, Package, BarChart3, IndianRupee, ArrowUpRight, Clock, ShoppingCart, Box } from 'lucide-react';
+import { motion } from 'framer-motion'; // Ensure this matches your package (framer-motion or motion/react)
 import { 
   AreaChart, 
   Area, 
@@ -30,6 +30,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     setIsMounted(true);
+    // This call hits your Render backend via the baseURL set in AuthContext
     axios.get('/api/dashboard/stats')
       .then(res => {
         setStats(res.data);
@@ -61,7 +62,7 @@ export default function Dashboard() {
     <div className="space-y-8 pb-12">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight font-display">Dashboard</h1>
+          <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Dashboard</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Real-time overview of your business performance.</p>
         </div>
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
@@ -114,17 +115,13 @@ export default function Dashboard() {
               <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Revenue Trends</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">Daily sales performance over the last 7 days.</p>
             </div>
-            <select className="bg-gray-50 dark:bg-gray-900 border-none text-xs font-bold text-gray-500 dark:text-gray-400 rounded-lg px-3 py-2 outline-none">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
           </div>
           
           <div className="h-72 w-full relative">
             <div className="absolute inset-0">
-              {isMounted && (
+              {isMounted && stats?.salesHistory && (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={stats?.salesHistory || []}>
+                  <AreaChart data={stats.salesHistory}>
                     <defs>
                       <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
@@ -174,7 +171,8 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight mb-6">Recent Activity</h3>
           <div className="space-y-6">
-            {stats?.recentActivity.map((activity, i) => (
+            {/* ADDED OPTIONAL CHAINING HERE TO PREVENT CRASH */}
+            {stats?.recentActivity?.map((activity, i) => (
               <div key={i} className="flex gap-4 group">
                 <div className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110",
@@ -200,7 +198,9 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
-            {(!stats?.recentActivity || stats.recentActivity.length === 0) && (
+            
+            {/* HANDLING EMPTY STATE */}
+            {(!stats?.recentActivity || stats.recentActivity.length === 0) && !loading && (
               <div className="text-center py-12">
                 <Clock className="w-12 h-12 text-gray-200 dark:text-gray-700 mx-auto mb-4" />
                 <p className="text-sm text-gray-400 font-medium">No recent activity found.</p>
