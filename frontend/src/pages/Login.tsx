@@ -22,7 +22,7 @@ export default function Login() {
       login(res.data.token, res.data.user);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please check your connection.');
+      setError(err.response?.data?.detail || 'Login failed. Please check your connection.');
     } finally {
       setIsLoading(false);
     }
