@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.tsx';
-import { Box, Lock, User } from 'lucide-react';
+import { Box } from 'lucide-react';
 import { motion } from 'motion/react';
 
-const API_URL = "https://crm-inventory-management-system-python.onrender.com"; // ✅ FIXED
+const API_URL = "https://crm-inventory-management-system-python.onrender.com";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState('');
@@ -21,29 +21,53 @@ export default function Login() {
     setIsLoading(true);
     setError('');
 
-    console.log("LOGIN CLICKED"); // ✅ DEBUG
+    console.log("🚀 LOGIN CLICKED");
 
     try {
       const res = await axios.post(`${API_URL}/api/auth/login`, {
         identifier,
         password
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
 
-      console.log("RESPONSE:", res.data); // ✅ DEBUG
+      console.log("✅ FULL RESPONSE:", res);
+      console.log("✅ DATA:", res.data);
+
+      // 🚨 IMPORTANT CHECK
+      if (!res.data) {
+        throw new Error("No response data from server");
+      }
+
+      if (!res.data.token) {
+        console.warn("⚠️ Token missing:", res.data);
+        throw new Error(res.data.message || "Invalid login response");
+      }
 
       // ✅ Save auth
       login(res.data.token, res.data.user);
+
+      console.log("✅ LOGIN SUCCESS");
 
       // ✅ Redirect
       navigate('/');
 
     } catch (err: any) {
-      console.error("LOGIN ERROR:", err); // ✅ DEBUG
+      console.error("❌ LOGIN ERROR:", err);
 
-      setError(
-        err.response?.data?.detail ||
-        'Login failed. Please check your connection.'
-      );
+      // 🔥 Handle HTML response case (your earlier issue)
+      if (err.response && typeof err.response.data === "string") {
+        setError("Server returned invalid response (HTML instead of JSON)");
+      } else {
+        setError(
+          err.response?.data?.detail ||
+          err.response?.data?.message ||
+          err.message ||
+          "Login failed. Please check your connection."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
