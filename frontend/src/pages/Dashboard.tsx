@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../api'; // ✅ use global API
 import { Users, Package, BarChart3, IndianRupee, ShoppingCart, Box } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
@@ -7,11 +7,9 @@ import {
   Area, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { cn } from '../lib/utils.ts';
 
 interface Stats {
   totalSuppliers: number;
@@ -34,94 +32,99 @@ export default function Dashboard() {
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const fetchStats = async () => {
+      try {
+        // ✅ FIX: call REAL backend endpoints
+        const [suppliers, products, stock, sales] = await Promise.all([
+          API.get('/api/suppliers'),
+          API.get('/api/products'),
+          API.get('/api/stock'),
+          API.get('/api/sales'),
+        ]);
 
-    axios.get('/api/dashboard/stats')
-      .then(res => {
-        const data = res.data || {};
+        const totalRevenue = sales.data.reduce(
+          (sum: number, s: any) => sum + (s.total || 0),
+          0
+        );
 
         setStats({
-          totalSuppliers: data.totalSuppliers ?? 0,
-          totalProducts: data.totalProducts ?? 0,
-          totalStockEntries: data.totalStockEntries ?? 0,
-          totalRevenue: data.totalRevenue ?? 0,
-          salesHistory: Array.isArray(data.salesHistory) ? data.salesHistory : [],
-          recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : []
+          totalSuppliers: suppliers.data.length,
+          totalProducts: products.data.length,
+          totalStockEntries: stock.data.length,
+          totalRevenue,
+          salesHistory: sales.data.map((s: any) => ({
+            date: new Date(s.created_at).toLocaleDateString(),
+            amount: s.total || 0
+          })),
+          recentActivity: sales.data.slice(0, 5)
         });
 
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err: any) {
         console.error(err);
-        setError(err.response?.data?.error || 'Failed to fetch dashboard stats');
+        setError('Failed to fetch dashboard stats');
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchStats();
   }, []);
 
   const cards = [
-    { label: 'Total Suppliers', value: stats.totalSuppliers, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { label: 'Total Products', value: stats.totalProducts, icon: Package, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-    { label: 'Stock Entries', value: stats.totalStockEntries, icon: BarChart3, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
-    { label: 'Total Revenue', value: stats.totalRevenue.toLocaleString('en-IN'), icon: IndianRupee, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20', isCurrency: true },
+    { label: 'Total Suppliers', value: stats.totalSuppliers, icon: Users },
+    { label: 'Total Products', value: stats.totalProducts, icon: Package },
+    { label: 'Stock Entries', value: stats.totalStockEntries, icon: BarChart3 },
+    { label: 'Total Revenue', value: stats.totalRevenue.toLocaleString('en-IN'), icon: IndianRupee },
   ];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <div className="p-10">Loading...</div>;
   }
 
   return (
-    <div className="space-y-8 pb-12">
-      <h1 className="text-4xl font-black">Dashboard</h1>
+    <div className="space-y-8">
+      <h1 className="text-4xl font-bold">Dashboard</h1>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm">
+        <div className="bg-red-100 text-red-600 p-4 rounded">
           {error}
         </div>
       )}
 
       {/* CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card, index) => (
-          <motion.div key={index}>
-            <div className="p-6 bg-white rounded-xl shadow">
-              <card.icon />
-              <h3>{card.value}</h3>
-              <p>{card.label}</p>
-            </div>
-          </motion.div>
+      <div className="grid grid-cols-4 gap-4">
+        {cards.map((card, i) => (
+          <div key={i} className="p-4 bg-white rounded shadow">
+            <card.icon />
+            <h2>{card.value}</h2>
+            <p>{card.label}</p>
+          </div>
         ))}
       </div>
 
       {/* CHART */}
       <div className="h-72">
-        {isMounted && (
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={Array.isArray(stats.salesHistory) ? stats.salesHistory : []}>
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Area dataKey="amount" />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={stats.salesHistory}>
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Area dataKey="amount" />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
       {/* ACTIVITY */}
       <div>
-        <h3>Recent Activity</h3>
+        <h3 className="text-xl">Recent Activity</h3>
 
-        {Array.isArray(stats.recentActivity) && stats.recentActivity.length > 0 ? (
+        {stats.recentActivity.length > 0 ? (
           stats.recentActivity.map((activity, i) => (
-            <div key={i}>
-              {activity.type === 'sale' ? <ShoppingCart /> : <Box />}
-              <p>{activity.type}</p>
+            <div key={i} className="flex gap-2">
+              <ShoppingCart />
+              <p>Sale ₹{activity.total}</p>
             </div>
           ))
         ) : (
