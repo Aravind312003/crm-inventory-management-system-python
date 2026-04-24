@@ -15,12 +15,12 @@ from backend.services.inventory_service import InventoryService
 
 app = FastAPI(title="Inventory Management API")
 
-# ✅ FIXED CORS (IMPORTANT)
+# ✅ FIXED CORS (FINAL)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://your-frontend-url.web.app"  # change this
+        "https://inventory-management-python.web.app"  # ✅ YOUR REAL FRONTEND
     ],
     allow_credentials=True,
     allow_methods=["*"],
