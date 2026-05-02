@@ -3,31 +3,32 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+import uvicorn
 
-from backend.database import get_supabase
-from backend.auth import (
+from database import get_supabase
+from auth import (
     verify_password,
     get_password_hash,
     create_access_token,
     get_current_user
 )
-from backend.services.inventory_service import InventoryService
+from services.inventory_service import InventoryService
 
 app = FastAPI(title="Inventory Management API")
 
-# ✅ FIXED CORS (FINAL)
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://inventory-management-python.web.app"  # ✅ YOUR REAL FRONTEND
+        "https://inventory-management-python.web.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Auth Routes ---
+# ---------------- AUTH ROUTES ----------------
 
 @app.post("/api/auth/register")
 async def register(request: Request):
@@ -61,7 +62,10 @@ async def register(request: Request):
         if not res.data:
             raise HTTPException(status_code=500, detail="Error creating user")
 
-        return {"message": "User registered successfully", "user": res.data[0]}
+        return {
+            "message": "User registered successfully",
+            "user": res.data[0]
+        }
 
     except Exception as e:
         print("REGISTER ERROR:", str(e))
@@ -72,7 +76,6 @@ async def register(request: Request):
 async def login(request: Request):
     try:
         data = await request.json()
-        print("LOGIN INPUT:", data)
 
         identifier = data.get("identifier") or data.get("username")
         password = data.get("password")
@@ -86,8 +89,6 @@ async def login(request: Request):
             .select("*") \
             .or_(f"username.eq.{identifier},email.eq.{identifier}") \
             .execute()
-
-        print("DB RESPONSE:", res.data)
 
         user = res.data[0] if res.data else None
 
@@ -121,7 +122,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
-# --- CRUD ROUTES ---
+# ---------------- CRUD ROUTES ----------------
+
 def create_crud_routes(prefix: str, table_name: str):
 
     @app.get(f"/api/{prefix}")
@@ -157,7 +159,7 @@ create_crud_routes("stock", "stock")
 create_crud_routes("customers", "customers")
 
 
-# --- SALES ROUTES ---
+# ---------------- SALES ROUTES ----------------
 
 @app.get("/api/sales")
 async def get_sales():
@@ -185,22 +187,36 @@ async def create_sale(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# --- STATIC FILES ---
+# ---------------- STATIC FILES ----------------
 
 dist_path = os.path.join(os.getcwd(), "dist")
+
 
 @app.exception_handler(404)
 async def not_found_exception_handler(request: Request, exc: HTTPException):
     if request.url.path.startswith("/api"):
-        return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "API endpoint not found"}
+        )
 
     index_path = os.path.join(dist_path, "index.html")
 
     if os.path.exists(index_path):
         return FileResponse(index_path)
 
-    return JSONResponse(status_code=404, content={"detail": "Frontend not found"})
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Frontend not found"}
+    )
 
 
 if os.path.exists(dist_path):
     app.mount("/", StaticFiles(directory=dist_path, html=True), name="static")
+
+
+# ---------------- CLOUD RUN ENTRY ----------------
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
