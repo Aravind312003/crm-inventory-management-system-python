@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 
-from database import get_supabase
+from backend.database import get_supabase
 from auth import (
     verify_password,
     get_password_hash,
