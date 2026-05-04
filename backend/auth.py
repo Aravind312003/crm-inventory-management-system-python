@@ -6,7 +6,7 @@ import bcrypt
 import hashlib
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from backend.database import get_supabase
+from database import get_supabase
 
 SECRET_KEY = os.environ.get("JWT_SECRET", "88283584826372819192837465615243")
 ALGORITHM = "HS256"

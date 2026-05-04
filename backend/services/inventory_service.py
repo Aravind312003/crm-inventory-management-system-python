@@ -1,4 +1,4 @@
-from backend.database import get_supabase
+from database import get_supabase
 from datetime import datetime
 
 class InventoryService:
