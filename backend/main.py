@@ -6,13 +6,13 @@ from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 
 from backend.database import get_supabase
-from auth import (
+from backend.auth import (
     verify_password,
     get_password_hash,
     create_access_token,
     get_current_user
 )
-from services.inventory_service import InventoryService
+from backend.services.inventory_service import InventoryService
 
 app = FastAPI(title="Inventory Management API")
 
