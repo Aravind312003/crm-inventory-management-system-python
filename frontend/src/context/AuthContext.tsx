@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-axios.defaults.baseURL = "https://crm-inventory-management-system-python.onrender.com";
+axios.defaults.baseURL = "https://crm-backend-519590348715.asia-south1.run.app";
 
 interface User {
   id: number;
