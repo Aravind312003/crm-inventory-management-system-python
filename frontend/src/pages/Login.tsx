@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Box } from 'lucide-react';
 import { motion } from 'motion/react';
-
-// ✅ Create dedicated axios instance (prevents wrong URL issues)
-const API = axios.create({
-  baseURL: "https://crm-backend-519590348715.asia-south1.run.app",
-  headers: {
-    "Content-Type": "application/json"
-  }
-});
+import API from '../api'; // shared axios instance
 
 export default function Login() {
   const [identifier, setIdentifier] = useState('');
@@ -30,7 +22,6 @@ export default function Login() {
     console.log("🚀 LOGIN CLICKED");
 
     try {
-      // ✅ ALWAYS hits Render backend
       const res = await API.post('/api/auth/login', {
         identifier,
         password
@@ -42,27 +33,21 @@ export default function Login() {
         throw new Error("Invalid login response");
       }
 
-      // ✅ Save auth
       login(res.data.token, res.data.user);
 
       console.log("✅ LOGIN SUCCESS");
 
-      // ✅ Redirect
       navigate('/');
 
     } catch (err: any) {
       console.error("❌ LOGIN ERROR:", err);
 
-      if (err.response && typeof err.response.data === "string") {
-        setError("Server returned HTML instead of JSON (wrong endpoint)");
-      } else {
-        setError(
-          err.response?.data?.detail ||
-          err.response?.data?.message ||
-          err.message ||
-          "Login failed"
-        );
-      }
+      setError(
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +55,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-700"
@@ -80,7 +65,7 @@ export default function Login() {
             <Box className="w-8 h-8 text-white" />
           </div>
         </div>
-        
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Welcome Back
@@ -97,7 +82,6 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-
           <input
             required
             type="text"
