@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://crm-inventory-management-system-python.onrender.com"
+  baseURL: "https://crm-backend-519590348715.asia-south1.run.app"
 });
 
 API.interceptors.request.use((config) => {
